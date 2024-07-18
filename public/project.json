@@ -1,0 +1,20 @@
+{
+	"file" : "index.html",
+	"general" : 
+	{
+		"properties" : 
+		{
+			"schemecolor" : 
+			{
+				"order" : 0,
+				"text" : "ui_browse_properties_scheme_color",
+				"type" : "color",
+				"value" : "0.5568627450980392 0.1568627450980392 0.8627450980392157"
+			}
+		}
+	},
+	"preview" : "preview.jpg",
+	"title" : "starryNight",
+	"type" : "web",
+	"version" : 0
+}

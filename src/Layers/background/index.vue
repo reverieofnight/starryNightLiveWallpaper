@@ -1,6 +1,6 @@
 <template>
     <div>
-        <video src="@/assets/bg.mp4" type="video/mp4" autoplay muted loop></video>
+        <video src="@/assets/bg.webm" type="video/webm" autoplay muted loop></video>
     </div>
 </template>
 

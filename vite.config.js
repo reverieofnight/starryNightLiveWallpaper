@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base:'./',
   plugins: [
     vue(),
   ],
@@ -12,5 +13,11 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
-  }
+  },
+  // 打包配置
+  build:{
+    target:'modules',
+    outDir:'C:/Program Files (x86)/Steam/steamapps/common/wallpaper_engine/projects/myprojects/starrynight',
+    emptyOutDir: true, // 构建时清空该目录
+  },
 })
