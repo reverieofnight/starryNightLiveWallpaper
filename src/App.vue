@@ -4,6 +4,81 @@ import HelloWorld from './components/HelloWorld.vue'
 import background from './Layers/background/index.vue';
 import disc from './Layers/disc/index.vue';
 import foreground from './Layers/foreground/index.vue';
+import { onMounted } from 'vue';
+import { useStore } from "@/pinia";
+import { thumbnailList } from '../samples/mediaInfoExample';
+const store = useStore();
+onMounted(() => {
+  console.log('ENV',process.env.NODE_ENV);
+  if(process.env.NODE_ENV === 'production'){
+    window.wallpaperRegisterMediaPropertiesListener(wallpaperMediaPropertiesListener);
+    function wallpaperMediaPropertiesListener(event){
+      console.log('wallpaperMediaPropertiesListener',event);
+      store.properties.albumArtist = event.albumArtist;
+      store.properties.albumTitle =  event.albumTitle;
+      store.properties.artist = event.artist;
+      store.properties.contentType = event.contentType;
+      store.properties.genres = event.genres;
+      store.properties.subTitle = event.subTitle;
+      store.properties.title = event.title;
+    }
+    window.wallpaperRegisterMediaThumbnailListener(wallpaperMediaThumbnailListener);
+    function wallpaperMediaThumbnailListener(event){
+      console.log('wallpaperMediaThumbnailListener',event);
+      store.thumbs.thumbnail = event.thumbnail;
+      store.thumbs.primaryColor = event.primaryColor;
+      store.thumbs.secondaryColor = event.secondaryColor;
+      store.thumbs.tertiaryColor = event.tertiaryColor;
+      store.thumbs.textColor = event.textColor;
+      store.thumbs.highContrastColor = event.highContrastColor;
+    }
+    window.wallpaperRegisterMediaPlaybackListener(wallpaperMediaPlaybackListener);
+    function wallpaperMediaPlaybackListener(event) {
+      console.log('wallpaperMediaPlaybackListener',event);
+      switch (event.state) {
+        case 1:
+          store.state = 'playing';
+          break;
+        case 2:
+          store.state = 'paused';
+          break;
+        case 3:
+          store.state = 'stopped';
+          break;
+        default:
+          break;
+      }
+    }
+
+  } else if(process.env.NODE_ENV === 'development'){
+      store.properties.albumArtist = '';
+      store.properties.albumTitle =  '若月亮还没来（若是月亮还没来）';
+      store.properties.artist = '王宇宙Leto/乔浚丞';
+      store.properties.contentType = 'music';
+      store.properties.genres = '';
+      store.properties.subTitle = '';
+      store.properties.title = '若月亮还没来（若是月亮还没来）';
+
+      store.thumbs.thumbnail = thumbnailList[0];
+      store.thumbs.primaryColor = '#357DBB';
+      store.thumbs.secondaryColor = '#F9A7B2';
+      store.thumbs.tertiaryColor = '#454C79';
+      store.thumbs.textColor = '#00000';
+      store.thumbs.highContrastColor = '#000000';
+
+      store.state = 'playing';
+      let index = 1;
+      setInterval(() => {
+        if(index < thumbnailList.length){
+          store.thumbs.thumbnail = thumbnailList[index];
+          index++;
+        } else {
+          index = 0;
+          store.thumbs.thumbnail = thumbnailList[index];
+        }
+      },10000)
+  }
+})
 </script>
 
 <template>

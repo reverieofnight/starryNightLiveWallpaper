@@ -1,4 +1,6 @@
 {
+	"contentrating" : "Everyone",
+	"description" : "网易云音乐播放器样式-梵高《星夜》移植.",
 	"file" : "index.html",
 	"general" : 
 	{
@@ -14,7 +16,13 @@
 		}
 	},
 	"preview" : "preview.jpg",
+	"ratingsex" : "none",
+	"ratingviolence" : "none",
+	"tags" : [ "Music" ],
 	"title" : "starryNight",
 	"type" : "web",
-	"version" : 0
+	"version" : 2,
+	"visibility" : "public",
+	"workshopid" : "3292392349",
+	"workshopurl" : "steam://url/CommunityFilePage/3292392349"
 }
