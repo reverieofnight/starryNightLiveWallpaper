@@ -20,8 +20,8 @@
 	"ratingviolence" : "none",
 	"tags" : [ "Music" ],
 	"title" : "starryNight",
-	"type" : "web",
-	"version" : 2,
+	"type" : "Web",
+	"version" : 3,
 	"visibility" : "public",
 	"workshopid" : "3292392349",
 	"workshopurl" : "steam://url/CommunityFilePage/3292392349"

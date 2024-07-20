@@ -20,6 +20,7 @@ const store = {
                 highContrastColor:'',
             },
             state:'', //1 playing, 2 paused, 3 stopped
+            fpsLimit:'',
         }
     },
     actions:{
