@@ -1,6 +1,6 @@
 {
 	"contentrating" : "Everyone",
-	"description" : "网易云音乐播放器样式-梵高《星夜》移植.",
+	"description" : "网易云音乐播放器样式-梵高《星夜》移植.可显示支持SMTC协议的音乐播放器的音乐信息",
 	"file" : "index.html",
 	"general" : 
 	{
@@ -20,8 +20,8 @@
 	"ratingviolence" : "none",
 	"tags" : [ "Music" ],
 	"title" : "starryNight",
-	"type" : "Web",
-	"version" : 3,
+	"type" : "web",
+	"version" : 4,
 	"visibility" : "public",
 	"workshopid" : "3292392349",
 	"workshopurl" : "steam://url/CommunityFilePage/3292392349"

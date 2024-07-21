@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div :style="discVisible === true ? {opacity:1}: {opacity:0}" style="transition: opacity 1s ease;">
 		<img ref="CD" class="thumbnail" :class="actualState" :src="currentThumbnail" alt="">
 		<img ref="front" class="front" :class="actualState" src="@/assets/disc1.png" alt="">
 		<img class="back" :class="actualState" src="@/assets/disc.png" alt="">
@@ -7,8 +7,9 @@
 </template>
 
 <script setup>
-import { computed, watch, ref, nextTick } from 'vue';
+import { computed, watch, ref } from 'vue';
 import { useStore } from '@/pinia';
+import emitter from '@/utils/mitt';
 const store = useStore();
 const thumbnail = computed(() => {
 	return store.thumbs.thumbnail;
@@ -35,8 +36,22 @@ function calcactualState(){
 }
 
 //切换歌曲，切换CD
+let discVisibleTimer = '';
+const discVisible = ref(false);
 watch(thumbnail, (val) => {
 	changeThumbnailAnimation();
+	if(val === "data:image/png;base64,"){
+		discVisibleTimer = setTimeout(() => {
+			discVisible.value = false;
+		},60000)
+	} else {
+		if(discVisible.value === false){
+			discVisible.value = true;
+		}
+		if(discVisibleTimer){
+			clearTimeout(discVisibleTimer);
+		}
+	}
 })
 const currentThumbnail = ref('');
 const animationTime = 1 * 1000;//动画时间
@@ -46,10 +61,13 @@ let CDDeg = 0;//当前旋转位置
 let putNewCDAniId = '';
 let rotateAniId = '';
 let switchCDAniId = '';
+let isRemovingCD = false;
+let isPuttingNewCD = false;
 function changeThumbnailAnimation(){
 	console.log('切换CD');
 	let step = '';
-	let targetLeft = '';//目标位置
+	let switchTargetLeft = '';//switch目标位置
+	let putTargetLeft = '';//put目标位置
 	let last = '';
 	let fpsThreshold = 0;
 	isSwitchCD.value = true;
@@ -67,15 +85,16 @@ function changeThumbnailAnimation(){
 		fpsThreshold = '';//清空帧计数
 		//加上cd半径，让其在屏幕之外
 		CDLeft = window.innerWidth * 0.24;//初始位置
-		targetLeft = -window.innerHeight * 0.32;
-		if(Math.abs(targetLeft) < 265){
-			targetLeft = -265;
+		switchTargetLeft = -window.innerHeight * 0.32;
+		if(Math.abs(switchTargetLeft) < 265){
+			switchTargetLeft = -265;
 		}
-		step = (CDLeft - targetLeft) * (1 / fpsLimit.value) * (1000 / animationTime);//每一帧移动的像素数
+		step = (CDLeft - switchTargetLeft) * (1 / fpsLimit.value) * (1000 / animationTime);//每一帧移动的像素数
 		if(switchCDAniId){
 			cancelAnimationFrame(switchCDAniId);
 		}
 		switchCDAniId = requestAnimationFrame(switchCDDraw);
+		isRemovingCD = true;
 		//绘制函数
 		function switchCDDraw(){
 			//限制帧数
@@ -95,16 +114,24 @@ function changeThumbnailAnimation(){
 				}
 			}
 			CD.value.style.left = CDLeft + 'px';
-			if(CDLeft > targetLeft){
+			if(CDLeft > switchTargetLeft){
 				CDLeft -= step;
 				requestAnimationFrame(switchCDDraw);
 			} else {
+				isRemovingCD = false;
 				putNewCD();
 			}
 		}
 	}
 	//放置新CD
 	function putNewCD(){
+		//数据为空
+		if(thumbnail.value === "data:image/png;base64,"){
+			isSwitchCD.value = false;
+			currentThumbnail.value = '';
+			calcactualState();
+			return;
+		}
 		//初始化
 		last = '';//清空计时器
 		fpsThreshold = '';//清空帧计数
@@ -116,9 +143,9 @@ function changeThumbnailAnimation(){
 		} else {
 			initLeft += window.innerHeight * 0.32;
 		}
-		targetLeft = window.innerWidth * 0.24;//最终位置
-		step = (initLeft - targetLeft) * (1 / fpsLimit.value) * (1000 / animationTime);//每一帧移动的像素数
-		CDLeft = calcLeft(targetLeft,initLeft,step);//计算实际初始位置倒推
+		putTargetLeft = window.innerWidth * 0.24;//最终位置
+		step = (initLeft - putTargetLeft) * (1 / fpsLimit.value) * (1000 / animationTime);//每一帧移动的像素数
+		CDLeft = calcLeft(putTargetLeft,initLeft,step);//计算实际初始位置倒推
 		currentThumbnail.value = thumbnail.value;
 		//重置CD旋转位置
 		CDDeg = 0;
@@ -129,6 +156,7 @@ function changeThumbnailAnimation(){
 		}
 		//开始绘制动画
 		putNewCDAniId = requestAnimationFrame(putNewCDDraw);
+		isPuttingNewCD = true;
 		//绘制函数
 		function putNewCDDraw(){
 			//限制帧数
@@ -148,17 +176,18 @@ function changeThumbnailAnimation(){
 				}
 			}
 			CD.value.style.left = CDLeft + 'px';
-			if(CDLeft > targetLeft + (step / 10)){
+			if(CDLeft > putTargetLeft + (step / 10)){
 				CDLeft -= step;
 				requestAnimationFrame(putNewCDDraw);
 			} else {
-				if(CDLeft !== targetLeft){
+				if(CDLeft !== putTargetLeft){
 					//修正最终位置
-					CDLeft = targetLeft;
+					CDLeft = putTargetLeft;
 					CD.value.style.left = CDLeft + 'px';
 				}
 				setTimeout(() => {
 					isSwitchCD.value = false;
+					isPuttingNewCD = false;
 					rotateCD();
 				},200)
 			}
@@ -174,6 +203,21 @@ function changeThumbnailAnimation(){
 		}
 	}
 }
+emitter.on('windowResize',() => {
+	let	rightLeft = window.innerWidth * 0.24;//修正位置
+	if(actualState.value === 'playing' || (state.value === 'paused' && isSwitchCD.value === false && currentThumbnail.value)){
+		CD.value.style.left = rightLeft + 'px';
+	}
+	if(isPuttingNewCD){
+		putTargetLeft = window.innerWidth * 0.24;//最终位置
+	}
+	if(isRemovingCD){
+		switchTargetLeft = -window.innerHeight * 0.32;
+		if(Math.abs(switchTargetLeft) < 265){
+			switchTargetLeft = -265;
+		}
+	}
+})
 
 //旋转CD函数
 const rotateTime = 25 * 1000;//旋转一圈所需时间
