@@ -27,6 +27,11 @@ const CD = ref();
 watch(playerStyle,() => {
 	changeCDPostion();
 })
+//fps变化后，重新计算旋转step
+watch(fpsLimit,() => {
+	console.log('fps变化',fpsLimit.value);
+	rotateCD();
+})
 function changeCDPostion(){
 	console.log('修改CD位置');
 	if(playerStyle.value === 'left'){
@@ -130,7 +135,7 @@ function changeThumbnailAnimation(){
 				if(fpsLimit.value > 0){
 					fpsThreshold += dt;
 					if(fpsThreshold < 1.0 / fpsLimit.value){
-						requestAnimationFrame(switchCDDraw);
+						switchCDAniId = requestAnimationFrame(switchCDDraw);
 						return;
 					}
 					fpsThreshold -= 1.0 / fpsLimit.value;
@@ -139,7 +144,7 @@ function changeThumbnailAnimation(){
 			CD.value.style.left = CDLeft + 'px';
 			if(CDLeft > switchTargetLeft){
 				CDLeft -= step;
-				requestAnimationFrame(switchCDDraw);
+				switchCDAniId = requestAnimationFrame(switchCDDraw);
 			} else {
 				isRemovingCD = false;
 				putNewCD();
@@ -192,7 +197,7 @@ function changeThumbnailAnimation(){
 				if(fpsLimit.value > 0){
 					fpsThreshold += dt;
 					if(fpsThreshold < 1.0 / fpsLimit.value){
-						requestAnimationFrame(putNewCDDraw);
+						putNewCDAniId = requestAnimationFrame(putNewCDDraw);
 						return;
 					}
 					fpsThreshold -= 1.0 / fpsLimit.value;
@@ -201,7 +206,7 @@ function changeThumbnailAnimation(){
 			CD.value.style.left = CDLeft + 'px';
 			if(CDLeft > putTargetLeft + (step / 10)){
 				CDLeft -= step;
-				requestAnimationFrame(putNewCDDraw);
+				putNewCDAniId = requestAnimationFrame(putNewCDDraw);
 			} else {
 				if(CDLeft !== putTargetLeft){
 					//修正最终位置
@@ -269,7 +274,7 @@ function rotateCD(){
 			if(fpsLimit.value > 0){
 				fpsThreshold += dt;
 				if(fpsThreshold < 1.0 / fpsLimit.value){
-					requestAnimationFrame(rotateCDDraw);
+					rotateAniId = requestAnimationFrame(rotateCDDraw);
 					return;
 				}
 				fpsThreshold -= 1.0 / fpsLimit.value;
@@ -285,7 +290,7 @@ function rotateCD(){
 		if(frontDeg >= 360){
 			frontDeg = 0;
 		}
-		requestAnimationFrame(rotateCDDraw);
+		rotateAniId = requestAnimationFrame(rotateCDDraw);
 	}
 }
 //继续播放，开始旋转	
