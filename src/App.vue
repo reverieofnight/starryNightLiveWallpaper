@@ -51,16 +51,17 @@ onMounted(() => {
     function wallpaperMediaPlaybackListener(event) {
       console.log('wallpaperMediaPlaybackListener',event);
       switch (event.state) {
+        case 0:
+          store.state = 'stopped';
+          break;
         case 1:
           store.state = 'playing';
           break;
         case 2:
           store.state = 'paused';
           break;
-        case 3:
-          store.state = 'stopped';
-          break;
         default:
+          store.state = 'undefined';
           break;
       }
     }

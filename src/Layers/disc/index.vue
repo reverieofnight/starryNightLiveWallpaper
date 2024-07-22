@@ -23,7 +23,19 @@ const fpsLimit = computed(() => {
 const playerStyle = computed(() => {
 	return store.playerStyle;
 })
-const CD = ref();
+const CD = ref();//专辑dom元素
+const currentThumbnail = ref('');//当前显示的专辑图片地址
+const CDX = ref('');//CD 目标X坐标
+const CDY = ref('');//CD 目标Y坐标
+const isSwitchCD = ref(false);
+const actualState = ref('paused');//实际播放器状态
+const discVisible = ref(false);//是否显示CD
+let discVisibleTimer = '';//CD是否显示定时器
+const animationTime = 1 * 1000;//动画时间
+const rotateTime = 25 * 1000;//旋转一圈所需时间
+const front = ref();
+const sleepWaitTime = 1 * 60 * 1000;//CD隐藏等待时间
+//监视播放器样式
 watch(playerStyle,() => {
 	changeCDPostion();
 })
@@ -32,8 +44,43 @@ watch(fpsLimit,() => {
 	console.log('fps变化',fpsLimit.value);
 	rotateCD();
 })
+//切换歌曲，切换CD
+watch(thumbnail, (val) => {
+	//打开音乐播放器，显示CD
+	if(discVisible.value === false && val !== "data:image/png;base64,"){
+		discVisible.value = true;
+	}
+	changeThumbnailAnimation();
+})
+//监视播放器状态,长时间暂停或停止，隐藏CD
+watch(actualState,() => {
+	if(actualState.value === 'paused' || actualState.value === 'stopped'){
+		if(discVisibleTimer){
+			clearTimeout(discVisibleTimer);
+		}
+		discVisibleTimer = setTimeout(() => {
+			discVisible.value = false;
+		},sleepWaitTime)
+	}
+	//如果用户点击播放，立即取消隐藏
+	if(discVisible.value === false && state.value === 'playing'){
+		discVisible.value = true;
+	}
+})
+//继续播放，开始旋转	
+watch(state, () => {
+	console.log('state',state.value);
+	calcactualState();
+	if(actualState.value === 'playing'){
+		rotateCD();
+	}
+})
+//正在动画中，重新计算播放器状态
+watch(isSwitchCD,() => {
+	calcactualState();
+})
+//修正CD位置
 function changeCDPostion(){
-	console.log('修改CD位置');
 	if(playerStyle.value === 'left'){
 		CDX.value = window.innerWidth * 0.24;
 		CDY.value = window.innerHeight * 0.5;
@@ -47,43 +94,27 @@ function changeCDPostion(){
 		CD.value.style.left = CDX.value + 'px';
 	}
 }
-const CDX = ref('');
-const CDY = ref('');
-const isSwitchCD = ref(false);
-//真正状态
-const actualState = ref('paused');
+
+//计算播放器状态
 function calcactualState(){
-	let isPlaying = false;
-	if(state.value === 'playing' && isSwitchCD.value === false && currentThumbnail.value){
-		isPlaying = true;
+	// actualState的值可为 playing paused switching stopped
+
+	if(isSwitchCD.value === true){
+		actualState.value = 'switching';
 	}
-	if(!isPlaying){
+	if(isSwitchCD.value === false && state.value === 'paused'){
 		actualState.value = 'paused';
-	} else {
+	}
+	if(isSwitchCD.value === false && state.value === 'playing'){
 		actualState.value = 'playing';
+	}
+	if(isSwitchCD.value === false && state.value === 'stopped'){
+		actualState.value = 'stopped';
 	}
 }
 
-//切换歌曲，切换CD
-let discVisibleTimer = '';
-const discVisible = ref(false);
-watch(thumbnail, (val) => {
-	changeThumbnailAnimation();
-	if(val === "data:image/png;base64,"){
-		discVisibleTimer = setTimeout(() => {
-			discVisible.value = false;
-		},60000)
-	} else {
-		if(discVisible.value === false){
-			discVisible.value = true;
-		}
-		if(discVisibleTimer){
-			clearTimeout(discVisibleTimer);
-		}
-	}
-})
-const currentThumbnail = ref('');
-const animationTime = 1 * 1000;//动画时间
+
+
 let CDLeft = '';//当前位置
 let CDDeg = 0;//当前旋转位置
 let putNewCDAniId = '';
@@ -248,8 +279,6 @@ emitter.on('windowResize',() => {
 })
 
 //旋转CD函数
-const rotateTime = 25 * 1000;//旋转一圈所需时间
-const front = ref();
 let frontDeg = 0;
 function rotateCD(){
 	let last = '';
@@ -293,28 +322,16 @@ function rotateCD(){
 		rotateAniId = requestAnimationFrame(rotateCDDraw);
 	}
 }
-//继续播放，开始旋转	
-watch(state, (val) => {
-	calcactualState();
-	if(actualState.value === 'playing'){
-		rotateCD();
-	}
-})
-watch(isSwitchCD,(val) => {
-	calcactualState();
-})
 
 </script>
 
 <style lang="less" scoped>
-.paused{
+.paused,.stopped{
 	opacity: 0.7;
 }
 .front,
 .back {
 	position: absolute;
-	// left: 24%;
-	// top: 50%;
 	transform: translate3d(-50%, -50%, 0);
 	width: 60vh;
 	height: 60vh;
@@ -325,8 +342,6 @@ watch(isSwitchCD,(val) => {
 .thumbnail {
 	z-index: 2;
 	position: absolute;
-	// left: 24%;
-	// top: 50%;
 	transform: translate3d(-50%, -50%, 0);
 	width: 32vh;
 	height: 32vh;
