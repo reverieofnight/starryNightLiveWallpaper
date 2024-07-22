@@ -62,6 +62,10 @@ watch(actualState,() => {
 			discVisible.value = false;
 		},sleepWaitTime)
 	}
+	//超时之前改变状态，取消定时器
+	if(discVisibleTimer && state.value === 'playing'){
+		clearTimeout(discVisibleTimer);
+	}
 	//如果用户点击播放，立即取消隐藏
 	if(discVisible.value === false && state.value === 'playing'){
 		discVisible.value = true;
