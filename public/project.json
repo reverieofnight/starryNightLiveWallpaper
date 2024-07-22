@@ -4,8 +4,42 @@
 	"file" : "index.html",
 	"general" : 
 	{
+		"localization" : 
+		{
+			"en-us" : 
+			{
+				"ui_center" : "center",
+				"ui_left" : "left",
+				"ui_playerStyle" : "player style"
+			},
+			"zh-chs" : 
+			{
+				"ui_center" : "居中",
+				"ui_left" : "左侧",
+				"ui_playerStyle" : "播放器样式"
+			}
+		},
 		"properties" : 
 		{
+			"playerStyle" : 
+			{
+				"index" : 0,
+				"options" : 
+				[
+					{
+						"label" : "ui_left",
+						"value" : "left"
+					},
+					{
+						"label" : "ui_center",
+						"value" : "center"
+					}
+				],
+				"order" : 100,
+				"text" : "ui_playerStyle",
+				"type" : "combo",
+				"value" : "left"
+			},
 			"schemecolor" : 
 			{
 				"order" : 0,
@@ -21,7 +55,7 @@
 	"tags" : [ "Music" ],
 	"title" : "starryNight",
 	"type" : "Web",
-	"version" : 5,
+	"version" : 6,
 	"visibility" : "public",
 	"workshopid" : "3292392349",
 	"workshopurl" : "steam://url/CommunityFilePage/3292392349"

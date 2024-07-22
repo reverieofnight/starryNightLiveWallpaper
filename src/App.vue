@@ -12,6 +12,13 @@ onMounted(() => {
   console.log('ENV',process.env.NODE_ENV);
   if(process.env.NODE_ENV === 'production'){
     window.wallpaperPropertyListener = {
+      applyUserProperties: function (properties) {
+        console.log('用户属性改变', properties);
+        //播放器样式
+        if(properties.playerStyle){
+          store.playerStyle = properties.playerStyle.value;
+        }
+      },
       applyGeneralProperties:function(properties){
         if(properties.fps){
           store.fpsLimit = properties.fps;
@@ -59,6 +66,7 @@ onMounted(() => {
     }
 
   } else if(process.env.NODE_ENV === 'development'){
+      store.playerStyle = 'left';
       store.properties.albumArtist = '';
       store.properties.albumTitle =  '若月亮还没来（若是月亮还没来）';
       store.properties.artist = '王宇宙Leto/乔浚丞';

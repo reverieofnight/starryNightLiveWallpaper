@@ -1,8 +1,8 @@
 <template>
 	<div :style="discVisible === true ? {opacity:1}: {opacity:0}" style="transition: opacity 1s ease;">
 		<img ref="CD" class="thumbnail" :class="actualState" :src="currentThumbnail" alt="">
-		<img ref="front" class="front" :class="actualState" src="@/assets/disc1.png" alt="">
-		<img class="back" :class="actualState" src="@/assets/disc.png" alt="">
+		<img ref="front" class="front" :class="actualState" :style="{left:CDX + 'px',top:CDY + 'px'}" src="@/assets/disc1.png" alt="">
+		<img class="back" :class="actualState" :style="{left:CDX + 'px',top:CDY + 'px'}" src="@/assets/disc.png" alt="">
 	</div>
 </template>
 
@@ -20,6 +20,30 @@ const state = computed(() => {
 const fpsLimit = computed(() => {
 	return store.fpsLimit;
 })
+const playerStyle = computed(() => {
+	return store.playerStyle;
+})
+const CD = ref();
+watch(playerStyle,() => {
+	changeCDPostion();
+})
+function changeCDPostion(){
+	console.log('修改CD位置');
+	if(playerStyle.value === 'left'){
+		CDX.value = window.innerWidth * 0.24;
+		CDY.value = window.innerHeight * 0.5;
+	} else if(playerStyle.value === 'center'){
+		CDX.value = window.innerWidth * 0.5;
+		CDY.value = window.innerHeight * 0.4;
+	}
+	//立即修正专辑图片top值
+	CD.value.style.top = CDY.value + 'px';
+	if(actualState.value === 'playing'){
+		CD.value.style.left = CDX.value + 'px';
+	}
+}
+const CDX = ref('');
+const CDY = ref('');
 const isSwitchCD = ref(false);
 //真正状态
 const actualState = ref('paused');
@@ -55,7 +79,6 @@ watch(thumbnail, (val) => {
 })
 const currentThumbnail = ref('');
 const animationTime = 1 * 1000;//动画时间
-const CD = ref();
 let CDLeft = '';//当前位置
 let CDDeg = 0;//当前旋转位置
 let putNewCDAniId = '';
@@ -63,11 +86,11 @@ let rotateAniId = '';
 let switchCDAniId = '';
 let isRemovingCD = false;
 let isPuttingNewCD = false;
+let switchTargetLeft = '';//switch目标位置
+let putTargetLeft = '';//put目标位置
 function changeThumbnailAnimation(){
 	console.log('切换CD');
 	let step = '';
-	let switchTargetLeft = '';//switch目标位置
-	let putTargetLeft = '';//put目标位置
 	let last = '';
 	let fpsThreshold = 0;
 	isSwitchCD.value = true;
@@ -84,7 +107,7 @@ function changeThumbnailAnimation(){
 		last = '';//清空计时器
 		fpsThreshold = '';//清空帧计数
 		//加上cd半径，让其在屏幕之外
-		CDLeft = window.innerWidth * 0.24;//初始位置
+		CDLeft = CDX.value;//初始位置
 		switchTargetLeft = -window.innerHeight * 0.32;
 		if(Math.abs(switchTargetLeft) < 265){
 			switchTargetLeft = -265;
@@ -143,7 +166,7 @@ function changeThumbnailAnimation(){
 		} else {
 			initLeft += window.innerHeight * 0.32;
 		}
-		putTargetLeft = window.innerWidth * 0.24;//最终位置
+		putTargetLeft = CDX.value;//最终位置
 		step = (initLeft - putTargetLeft) * (1 / fpsLimit.value) * (1000 / animationTime);//每一帧移动的像素数
 		CDLeft = calcLeft(putTargetLeft,initLeft,step);//计算实际初始位置倒推
 		currentThumbnail.value = thumbnail.value;
@@ -204,12 +227,12 @@ function changeThumbnailAnimation(){
 	}
 }
 emitter.on('windowResize',() => {
-	let	rightLeft = window.innerWidth * 0.24;//修正位置
+	changeCDPostion();
 	if(actualState.value === 'playing' || (state.value === 'paused' && isSwitchCD.value === false && currentThumbnail.value)){
-		CD.value.style.left = rightLeft + 'px';
+		CD.value.style.left = CDX.value + 'px';
 	}
 	if(isPuttingNewCD){
-		putTargetLeft = window.innerWidth * 0.24;//最终位置
+		putTargetLeft = CDX.value;//最终位置
 	}
 	if(isRemovingCD){
 		switchTargetLeft = -window.innerHeight * 0.32;
@@ -285,8 +308,8 @@ watch(isSwitchCD,(val) => {
 .front,
 .back {
 	position: absolute;
-	left: 24%;
-	top: 50%;
+	// left: 24%;
+	// top: 50%;
 	transform: translate3d(-50%, -50%, 0);
 	width: 60vh;
 	height: 60vh;
@@ -297,8 +320,8 @@ watch(isSwitchCD,(val) => {
 .thumbnail {
 	z-index: 2;
 	position: absolute;
-	left: 24%;
-	top: 50%;
+	// left: 24%;
+	// top: 50%;
 	transform: translate3d(-50%, -50%, 0);
 	width: 32vh;
 	height: 32vh;
