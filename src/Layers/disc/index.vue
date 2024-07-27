@@ -101,7 +101,7 @@ function changeCDPostion(){
 
 //计算播放器状态
 function calcactualState(){
-	// actualState的值可为 playing paused switching stopped
+	// actualState的值可为 playing paused switching stopped empty
 
 	if(isSwitchCD.value === true){
 		actualState.value = 'switching';
@@ -109,8 +109,11 @@ function calcactualState(){
 	if(isSwitchCD.value === false && state.value === 'paused'){
 		actualState.value = 'paused';
 	}
-	if(isSwitchCD.value === false && state.value === 'playing'){
+	if(isSwitchCD.value === false && state.value === 'playing' && currentThumbnail.value){
 		actualState.value = 'playing';
+	}
+	if(isSwitchCD.value === false && state.value === 'playing' && currentThumbnail.value === ''){
+		actualState.value = 'empty';//正在播放，但是无数据
 	}
 	if(isSwitchCD.value === false && state.value === 'stopped'){
 		actualState.value = 'stopped';
@@ -293,8 +296,8 @@ function rotateCD(){
 	}
 	rotateAniId = requestAnimationFrame(rotateCDDraw);
 	function rotateCDDraw(){
-		//如果播放状态为暂停，则停止旋转
-		if(actualState.value === 'paused'){
+		//如果不在播放状态，则停止旋转
+		if(actualState.value !== 'playing'){
 			return;
 		}
 		//限制帧数
@@ -330,7 +333,7 @@ function rotateCD(){
 </script>
 
 <style lang="less" scoped>
-.paused,.stopped{
+.paused,.stopped,.empty{
 	opacity: 0.7;
 }
 .front,
